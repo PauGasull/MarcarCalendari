@@ -1,0 +1,37 @@
+.calendari-container {
+    text-align: center;
+    max-width: 350px;
+    margin: auto;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.calendari {
+    text-align: center;
+}
+
+.calendari #headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr) ;
+    gap: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.calendari #dies {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr) ;
+    gap: 5px;
+    text-align: center;
+}
+
+.calendari div {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 40px;
+}

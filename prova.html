@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Selector de dies amb Navegació de Mesos</title>
+</head>
+
+<body>
+    <div class="calendari-container">
+        <h2>Selector de dies amb Navegació de Mesos</h2>
+        <div class="controls">
+            <button type="button" onclick="mesAnterior()">Anterior</button>
+            <span id="mes-any"></span>
+            <button type="button" onclick="mesSeguent()">Següent</button>
+        </div>
+        <form action="procesar_dies.php" method="post" onsubmit="prepararEnvio()">
+            <div class="calendari">
+                <!-- Etiquetes dels dies de la setmana -->
+                <div id="headers">
+                    <div class="header">Dl</div>
+                    <div class="header">Dm</div>
+                    <div class="header">Dc</div>
+                    <div class="header">Dj</div>
+                    <div class="header">Dv</div>
+                    <div class="header">Ds</div>
+                    <div class="header">Dg</div>
+                </div>
+                <!-- Dies del mes amb checkbox (es generaran dinàmicament) -->
+                <div id="dies"></div>
+            </div>
+            <!-- Camp ocult per emmagatzemar el JSON -->
+            <input type="hidden" name="seleccionsJSON" id="seleccionsJSON">
+            <br>
+            <input type="submit" value="Enviar">
+        </form>
+    </div>
+
+    <script>
+        let dataActual = new Date();
+        actualitzarCalendari();
+
+        function actualitzarCalendari() {
+            const diesDiv = document.getElementById('dies');
+            const mesAny = document.getElementById('mes-any');
+
+            // Netejem els dies anteriors
+            diesDiv.innerHTML = '';
+
+            // Mostrem el mes i any actual
+            const mes = dataActual.getMonth();
+            const any = dataActual.getFullYear();
+            mesAny.textContent = dataActual.toLocaleString('ca-ES', { month: 'long', year: 'numeric' });
+
+            // Recuperem les seleccions guardades
+            const seleccionsGuardades = JSON.parse(localStorage.getItem('seleccionsDies')) || {};
+
+            // Definim el primer dia del mes i el nombre de dies del mes
+            const primerDia = (new Date(any, mes, 1).getDay() + 6) % 7;
+            const diesMes = new Date(any, mes + 1, 0).getDate();
+
+            // Afegim espais buits per a dies anteriors al primer dia
+            for (let i = 0; i < primerDia; i++) {
+                const buit = document.createElement('div');
+                diesDiv.appendChild(buit);
+            }
+
+            // Generem dies amb checkbox
+            for (let dia = 1; dia <= diesMes; dia++) {
+                const diaDiv = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'dies[]';
+                const valorCheckbox = `${any}-${mes + 1}-${dia}`;
+                checkbox.value = valorCheckbox;
+
+                // Verifiquem si ja està seleccionat
+                if (seleccionsGuardades[valorCheckbox]) {
+                    checkbox.checked = true;
+                }
+
+                // Afegim listener per emmagatzemar seleccions
+                checkbox.addEventListener('change', function () {
+                    const seleccions = JSON.parse(localStorage.getItem('seleccionsDies')) || {};
+                    seleccions[valorCheckbox] = checkbox.checked;
+                    localStorage.setItem('seleccionsDies', JSON.stringify(seleccions));
+                });
+
+                diaDiv.appendChild(checkbox);
+                diaDiv.appendChild(document.createTextNode(` ${dia}`));
+                diesDiv.appendChild(diaDiv);
+            }
+
+            // Afegim espais buits per a completar la graella fins al final de la setmana (7 dies)
+            const diesFalts = (diesDiv.children.length) % 7;
+            if (diesFalts !== 0) {
+                for (let i = 0; i < 7 - diesFalts; i++) {
+                    const buit = document.createElement('div');
+                    diesDiv.appendChild(buit);
+                }
+            }
+        }
+
+        function mesAnterior() {
+            const dataActualMes = new Date(); // Data actual per comparar
+            dataActualMes.setDate(1); // Ens assegurem que està al primer dia del mes actual
+            if (dataActual > dataActualMes) { // Només permet moure si estem més endavant
+                dataActual.setMonth(dataActual.getMonth() - 1);
+                actualitzarCalendari();
+            }
+        }
+
+        function mesSeguent() {
+            dataActual.setMonth(dataActual.getMonth() + 1);
+            actualitzarCalendari();
+        }
+
+        // Funció que s'executa quan es fa submit del formulari
+        function prepararEnvio() {
+            const seleccions = localStorage.getItem('seleccionsDies'); // Recuperem el JSON de localStorage
+            document.getElementById('seleccionsJSON').value = seleccions || '{}'; // Assignem el valor del JSON al camp ocult del formulari
+            localStorage.removeItem('seleccionsDies'); // borrem el JSON
+        }
+    </script>
+</body>
+
+</html>
